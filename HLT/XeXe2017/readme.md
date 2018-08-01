@@ -1,4 +1,5 @@
 
+<pre>
 cmsrel CMSSW_10_1_2
 cd CMSSW_10_1_2/src
 cmsenv
@@ -14,5 +15,6 @@ git clone https://github.com/cms-l1t-offline/L1Trigger-L1TCalorimeter.git L1Trig
 git cms-addpkg HLTrigger/Configuration
 scram build -j 8
 
-
 cmsRun expmenu.py 2>&1 | tee logs/menulog.txt
+
+</pre>

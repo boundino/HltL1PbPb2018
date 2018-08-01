@@ -1,4 +1,5 @@
 
+<pre>
 process.MBefficiency = cms.EDAnalyzer("MBtriggerEfficiency",
     # hcalToken = cms.untracked.InputTag("simHcalTriggerPrimitiveDigis"),
     # triggerPrimitives = cms.InputTag("simHcalTriggerPrimitiveDigis"),
@@ -11,3 +12,5 @@ process.MBefficiency = cms.EDAnalyzer("MBtriggerEfficiency",
 )
 
 process.L1TReEmul = cms.Sequence(process.simEcalTriggerPrimitiveDigis+process.simHcalTriggerPrimitiveDigis+process.SimL1Emulator+process.MBefficiency)
+
+</pre>
