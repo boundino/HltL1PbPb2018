@@ -3,7 +3,7 @@
 MENU="/users/wangj/PbPb2018/HLTPbPb2018Import/V11"
 FILE=file:/afs/cern.ch/work/w/wangj/public/XeXeMB8/B2E50951-92AF-E711-A534-02163E01A2FC.root # raw
 # FILE=root://cms-xrd-global.cern.ch//store/hidata/XeXeRun2017/HIMinimumBias8/AOD/13Dec2017-v1/10000/F2F884C7-76F9-E711-AE1F-0CC47A1E047C.root # AOD
-# FILE=root://cms-xrd-global.cern.ch//store/hidata/XeXeRun2017/HIMinimumBias8/RAW/v1/000/304/899/00000/D847E14A-60B0-E711-AF0A-02163E011E6D.root # RAW
+# PARENT=root://cms-xrd-global.cern.ch//store/hidata/XeXeRun2017/HIMinimumBias8/RAW/v1/000/304/899/00000/D847E14A-60B0-E711-AF0A-02163E011E6D.root # RAW
 
 CONFIG=expmenu_l1emulator
 
@@ -22,8 +22,8 @@ set +x
 sed -i 's/rawDataCollector/rawDataRepacker/g' ${CONFIG}_DUMP.py
 sed -i '/hgcal/s/^/# /' ${CONFIG}_DUMP.py
 sed -i '1s/^/# /' ${CONFIG}_DUMP.py
-sed -i 's/numberOfThreads = cms.untracked\.uint32(4)/numberOfThreads = cms.untracked.uint32(1)/g' ${CONFIG}_DUMP.py
-sed -i 's/enableMultiThread = cms\.untracked\.bool(True)/enableMultiThread = cms.untracked.bool(False)/g' ${CONFIG}_DUMP.py
+# sed -i 's/numberOfThreads = cms.untracked\.uint32(4)/numberOfThreads = cms.untracked.uint32(1)/g' ${CONFIG}_DUMP.py
+# sed -i 's/enableMultiThread = cms\.untracked\.bool(True)/enableMultiThread = cms.untracked.bool(False)/g' ${CONFIG}_DUMP.py
 
 echo '
 # hltbitanalysis
