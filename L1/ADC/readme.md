@@ -1,5 +1,9 @@
 
 <pre>
+process.HFAdcana = cms.EDAnalyzer("HFAdcToGeV",
+    digiLabel = cms.untracked.InputTag("hcalDigis")
+)
+
 process.MBefficiency = cms.EDAnalyzer("MBtriggerEfficiency",
     # hcalToken = cms.untracked.InputTag("simHcalTriggerPrimitiveDigis"),
     # triggerPrimitives = cms.InputTag("simHcalTriggerPrimitiveDigis"),
@@ -10,7 +14,4 @@ process.MBefficiency = cms.EDAnalyzer("MBtriggerEfficiency",
     trackTag = cms.InputTag("generalTracks"),
     vertexTag = cms.InputTag("offlinePrimaryVertices"),
 )
-
-process.L1TReEmul = cms.Sequence(process.simEcalTriggerPrimitiveDigis+process.simHcalTriggerPrimitiveDigis+process.SimL1Emulator+process.MBefficiency)
-
 </pre>
