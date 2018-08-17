@@ -12,11 +12,8 @@
 #include <vector>
 
 #include "xjjrootuti.h"
+#include "xjjcuti.h"
 
 
 int FGthre[] = {10, 12, 15, 17};
 const int nFGthre = sizeof(FGthre) / sizeof(FGthre[0]);
-
-Color_t colorlist_light[] = {kRed-9, kOrange-4, kGreen-8, kAzure-9};
-Color_t colorlist_middle[] = {kRed-3, kOrange-3, kGreen+2, kAzure-3};
-

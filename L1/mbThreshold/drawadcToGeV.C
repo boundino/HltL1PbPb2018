@@ -36,6 +36,10 @@ void drawadcToGeV(TString inputname, TString tag="2018 low PU pp")
   vhist.push_back(hcorrtower_ADC_Eoffline);
   TH2F* hcorrtower_E_Eoffline = (TH2F*)inf->Get("hcorrtower_E_Eoffline");
   vhist.push_back(hcorrtower_E_Eoffline);
+  TH2F* hcorrtower_ADCsum_Eoffline = (TH2F*)inf->Get("hcorrtower_ADCsum_Eoffline");
+  vhist.push_back(hcorrtower_ADCsum_Eoffline);
+  TH2F* hcorrtower_Esum_Eoffline = (TH2F*)inf->Get("hcorrtower_Esum_Eoffline");
+  vhist.push_back(hcorrtower_Esum_Eoffline);
   
   TF1* f1 = new TF1("f1", "x*0.5", 0, 30);
   f1->SetLineStyle(2);
@@ -56,7 +60,7 @@ void drawadcToGeV(TString inputname, TString tag="2018 low PU pp")
       TCanvas* c = new TCanvas("c", "", 600, 600);
       // c->SetLogz();
       i->Draw("");
-      p->Draw("l same");
+      p->Draw("le same");
       if(nline==2) 
         { 
           f1->Draw("same"); f2->Draw("same"); 

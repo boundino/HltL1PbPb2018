@@ -54,6 +54,10 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
   vhist.push_back(hcorrtower_ADC_Eoffline);
   TH2F* hcorrtower_E_Eoffline = new TH2F("hcorrtower_E_Eoffline", ";HF energy (after ped sub) [GeV];offline HF tower energy / 4 [GeV]", 100, 0, 20, 100, 0, 20);
   vhist.push_back(hcorrtower_E_Eoffline);
+  TH2F* hcorrtower_ADCsum_Eoffline = new TH2F("hcorrtower_ADCsum_Eoffline", ";HF tower ADC / 4;offline HF tower energy / 4 [GeV]", 30, 0, 30, 100, 0, 20); 
+  vhist.push_back(hcorrtower_ADCsum_Eoffline);
+  TH2F* hcorrtower_Esum_Eoffline = new TH2F("hcorrtower_Esum_Eoffline", ";HF tower energy (after ped sub) / 4 [GeV];offline HF tower energy / 4 [GeV]", 100, 0, 20, 100, 0, 20);
+  vhist.push_back(hcorrtower_Esum_Eoffline);
 
   int nentries = nevt>0&&nevt<l1Adc->GetEntries()?nevt:l1Adc->GetEntries();
   for(int i=0;i<nentries;i++)
@@ -62,15 +66,15 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
       l1Adc->GetEntry(i);
       hiroot->GetEntry(i);
 
-      std::vector<int> ampltower(NBIN_IETA*100 + NBIN_IPHI, 0);
-      std::vector<double> Etower(NBIN_IETA*100 + NBIN_IPHI, 0);
+      std::vector<std::vector<int>> ampltower(NBIN_IETA*100 + NBIN_IPHI, std::vector<int>());
+      std::vector<std::vector<double>> Etower(NBIN_IETA*100 + NBIN_IPHI, std::vector<double>());
       int nchannels = ampl->size();
       for(int l=0;l<nchannels;l++)
         {
           if(TMath::Abs((*ieta)[l]) < 29) { std::cout << xjjc::red << "warning: channel not HF" << xjjc::nc << std::endl; continue; }
           int index = ((*ieta)[l]+50) * 100 + (*iphi)[l];
-          ampltower[index] += (*ampl)[l];
-          Etower[index] += (*energy)[l];
+          ampltower[index].push_back( (*ampl)[l] );
+          Etower[index].push_back( (*energy)[l] );
 
           hcorr_ADC_Eped->Fill((*ampl)[l], (*energy_ped)[l]);
           if( (*ieta)[l] > 0 ) hcorr_ADC_Epedplus->Fill((*ampl)[l], (*energy_ped)[l]);
@@ -82,10 +86,12 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
       for(int j=0;j<ntower;j++) 
         { 
           int index = ((*towerieta)[j]+50) * 100 + (*toweriphi)[j];
-          int thisampl = ampltower[index];
-          double thisE = Etower[index];
-          hcorrtower_ADC_Eoffline->Fill(thisampl / 4., (*towerE)[j] / 4.);
-          hcorrtower_E_Eoffline->Fill(thisE / 4., (*towerE)[j] / 4.);
+          int thisampl = 0;
+          double thisE = 0;
+          for( auto& k : ampltower[index] ) { hcorrtower_ADC_Eoffline->Fill(k, (*towerE)[j] / 4.); thisampl += k; }
+          for( auto& k : Etower[index] ) { hcorrtower_E_Eoffline->Fill(k, (*towerE)[j] / 4.); thisE += k; }
+          hcorrtower_ADCsum_Eoffline->Fill(thisampl / 4., (*towerE)[j] / 4.);
+          hcorrtower_Esum_Eoffline->Fill(thisE / 4., (*towerE)[j] / 4.);
         }
     }
   std::cout<<std::setiosflags(std::ios::left)<<"  Processed "<<"\033[1;31m"<<nentries<<"\033[0m out of\033[1;31m "<<nentries<<"\033[0m event(s)."<<std::endl;
@@ -99,6 +105,8 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
   hcorr_fCped_Eped->Write();
   hcorrtower_ADC_Eoffline->Write();
   hcorrtower_E_Eoffline->Write();
+  hcorrtower_ADCsum_Eoffline->Write();
+  hcorrtower_Esum_Eoffline->Write();
   output->Close();
 }
 
