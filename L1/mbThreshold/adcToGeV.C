@@ -1,0 +1,111 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1F.h>
+#include <TMath.h>
+#include <TH2F.h>
+
+#include "xjjrootuti.h"
+#include "xjjcuti.h"
+
+void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
+{
+  TFile* inf = new TFile(inputname.c_str());
+  TTree* l1Adc = (TTree*)inf->Get("HFAdcana/adc");
+  TTree* hiroot = (TTree*)inf->Get("hiEvtAnalyzer/HiTree");
+
+  //
+  int nampl; l1Adc->SetBranchAddress("nampl", &nampl);
+  std::vector<int>*    ampl       = 0; l1Adc->SetBranchAddress("ampl",       &ampl);
+  std::vector<int>*    ieta       = 0; l1Adc->SetBranchAddress("ieta",       &ieta);
+  std::vector<int>*    iphi       = 0; l1Adc->SetBranchAddress("iphi",       &iphi);
+  std::vector<int>*    depth      = 0; l1Adc->SetBranchAddress("depth",      &depth);
+  std::vector<double>* charge     = 0; l1Adc->SetBranchAddress("charge",     &charge);
+  std::vector<double>* charge_ped = 0; l1Adc->SetBranchAddress("charge_ped", &charge_ped);
+  std::vector<double>* energy     = 0; l1Adc->SetBranchAddress("energy",     &energy);
+  std::vector<double>* energy_ped = 0; l1Adc->SetBranchAddress("energy_ped", &energy_ped);
+
+  int ntower; hiroot->SetBranchAddress("ntower", &ntower);
+  float towerEmax; hiroot->SetBranchAddress("towerEmax", &towerEmax);
+  std::vector<float>* towerE    = 0; hiroot->SetBranchAddress("towerE",    &towerE);
+  std::vector<int>*   towerieta = 0; hiroot->SetBranchAddress("towerieta", &towerieta);
+  std::vector<int>*   toweriphi = 0; hiroot->SetBranchAddress("toweriphi", &toweriphi);
+
+  const int NBIN_IETA = 101, NBIN_IPHI = 80; 
+
+  //
+  std::vector<TH2F*> vhist;
+  TH2F* hcorr_ADC_Eped = new TH2F("hcorr_ADC_Eped", ";HF ADC;HF energy (before ped sub) [GeV]", 30, 0, 30, 100, 0, 20);
+  vhist.push_back(hcorr_ADC_Eped);
+  TH2F* hcorr_ADC_Epedplus = new TH2F("hcorr_ADC_Epedplus", ";HF+ ADC;HF+ energy (before ped sub) [GeV]", 30, 0, 30, 100, 0, 20);
+  vhist.push_back(hcorr_ADC_Epedplus);
+  TH2F* hcorr_ADC_Epedminus = new TH2F("hcorr_ADC_Epedminus", ";HF- ADC;HF- energy (before ped sub) [GeV]", 30, 0, 30, 100, 0, 20);
+  vhist.push_back(hcorr_ADC_Epedminus);
+  TH2F* hcorr_ADC_E = new TH2F("hcorr_ADC_E", ";HF ADC;HF energy (after ped sub) [GeV]", 30, 0, 30, 100, 0, 20);
+  vhist.push_back(hcorr_ADC_E);
+  TH2F* hcorr_Eped_E = new TH2F("hcorr_Eped_E", ";HF energy (before ped sub) [GeV];HF energy (after ped sub) [GeV]", 100, 0, 20, 100, 0, 20);
+  vhist.push_back(hcorr_Eped_E);
+  TH2F* hcorr_fCped_Eped = new TH2F("hcorr_fCped_Eped", ";Charge input (fC);HF energy (before ped sub) [GeV]", 100, 0, 100, 100, 0, 20);
+  vhist.push_back(hcorr_fCped_Eped);
+  TH2F* hcorrtower_ADC_Eoffline = new TH2F("hcorrtower_ADC_Eoffline", ";HF ADC;offline HF tower energy / 4 [GeV]", 30, 0, 30, 100, 0, 20); 
+  vhist.push_back(hcorrtower_ADC_Eoffline);
+  TH2F* hcorrtower_E_Eoffline = new TH2F("hcorrtower_E_Eoffline", ";HF energy (after ped sub) [GeV];offline HF tower energy / 4 [GeV]", 100, 0, 20, 100, 0, 20);
+  vhist.push_back(hcorrtower_E_Eoffline);
+
+  int nentries = nevt>0&&nevt<l1Adc->GetEntries()?nevt:l1Adc->GetEntries();
+  for(int i=0;i<nentries;i++)
+    {
+      if(i%100==0) { std::cout<<std::setiosflags(std::ios::left)<<std::setw(12)<<i<<" / "<<nentries<<"\r"<<std::flush; }
+      l1Adc->GetEntry(i);
+      hiroot->GetEntry(i);
+
+      std::vector<int> ampltower(NBIN_IETA*100 + NBIN_IPHI, 0);
+      std::vector<double> Etower(NBIN_IETA*100 + NBIN_IPHI, 0);
+      int nchannels = ampl->size();
+      for(int l=0;l<nchannels;l++)
+        {
+          if(TMath::Abs((*ieta)[l]) < 29) { std::cout << xjjc::red << "warning: channel not HF" << xjjc::nc << std::endl; continue; }
+          int index = ((*ieta)[l]+50) * 100 + (*iphi)[l];
+          ampltower[index] += (*ampl)[l];
+          Etower[index] += (*energy)[l];
+
+          hcorr_ADC_Eped->Fill((*ampl)[l], (*energy_ped)[l]);
+          if( (*ieta)[l] > 0 ) hcorr_ADC_Epedplus->Fill((*ampl)[l], (*energy_ped)[l]);
+          if( (*ieta)[l] < 0 ) hcorr_ADC_Epedminus->Fill((*ampl)[l], (*energy_ped)[l]);
+          hcorr_ADC_E->Fill((*ampl)[l], (*energy)[l]);
+          hcorr_Eped_E->Fill((*energy_ped)[l], (*energy)[l]);
+          hcorr_fCped_Eped->Fill((*charge_ped)[l], (*energy_ped)[l]);
+        }
+      for(int j=0;j<ntower;j++) 
+        { 
+          int index = ((*towerieta)[j]+50) * 100 + (*toweriphi)[j];
+          int thisampl = ampltower[index];
+          double thisE = Etower[index];
+          hcorrtower_ADC_Eoffline->Fill(thisampl / 4., (*towerE)[j] / 4.);
+          hcorrtower_E_Eoffline->Fill(thisE / 4., (*towerE)[j] / 4.);
+        }
+    }
+  std::cout<<std::setiosflags(std::ios::left)<<"  Processed "<<"\033[1;31m"<<nentries<<"\033[0m out of\033[1;31m "<<nentries<<"\033[0m event(s)."<<std::endl;
+
+  TFile* output = new TFile(Form("%s.root", outputname.c_str()), "recreate");
+  hcorr_ADC_Eped->Write();
+  hcorr_ADC_Epedplus->Write();
+  hcorr_ADC_Epedminus->Write();
+  hcorr_ADC_E->Write();
+  hcorr_Eped_E->Write();
+  hcorr_fCped_Eped->Write();
+  hcorrtower_ADC_Eoffline->Write();
+  hcorrtower_E_Eoffline->Write();
+  output->Close();
+}
+
+int main(int argc, char* argv[])
+{
+  if(argc==3) { adcToGeV(argv[1], argv[2]); return 0;}
+  if(argc==4) { adcToGeV(argv[1], argv[2], atoi(argv[3])); return 0;}
+  return 1;
+}
+
