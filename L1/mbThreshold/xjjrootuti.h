@@ -26,6 +26,8 @@ namespace xjjroot
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
+  template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
+  template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
@@ -114,6 +116,22 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
   if(fcolor>=0) h->SetFillColor(fcolor);
   if(falpha>=0) h->SetFillColorAlpha(fcolor, falpha);
   if(fstyle>=0) h->SetFillStyle(fstyle);
+}
+
+template <class T>
+void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/)
+{
+  if(lcolor>=0) h->SetLineColor(lcolor);
+  if(lstyle>=0) h->SetLineStyle(lstyle);
+  if(lwidth>=0) h->SetLineWidth(lwidth);
+}
+
+template <class T>
+void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
+{
+  if(mcolor>=0) h->SetMarkerColor(mcolor);
+  if(mstyle>=0) h->SetMarkerStyle(mstyle);
+  if(msize>=0)  h->SetMarkerSize(msize);
 }
 
 void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Bool_t drawenergy/*=true*/)

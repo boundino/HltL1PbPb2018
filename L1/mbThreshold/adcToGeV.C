@@ -48,8 +48,10 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
   vhist.push_back(hcorr_ADC_E);
   TH2F* hcorr_Eped_E = new TH2F("hcorr_Eped_E", ";HF energy (before ped sub) [GeV];HF energy (after ped sub) [GeV]", 100, 0, 20, 100, 0, 20);
   vhist.push_back(hcorr_Eped_E);
-  TH2F* hcorr_fCped_Eped = new TH2F("hcorr_fCped_Eped", ";Charge input (fC);HF energy (before ped sub) [GeV]", 100, 0, 100, 100, 0, 20);
+  TH2F* hcorr_fCped_Eped = new TH2F("hcorr_fCped_Eped", ";Charge input fC (before ped sub);HF energy (before ped sub) [GeV]", 100, 0, 100, 100, 0, 20);
   vhist.push_back(hcorr_fCped_Eped);
+  TH2F* hcorr_fC_E = new TH2F("hcorr_fC_E", ";Charge input fC (after ped sub);HF energy (after ped sub) [GeV]", 100, 0, 100, 100, 0, 20);
+  vhist.push_back(hcorr_fC_E);
   TH2F* hcorrtower_ADC_Eoffline = new TH2F("hcorrtower_ADC_Eoffline", ";HF ADC;offline HF tower energy / 4 [GeV]", 30, 0, 30, 100, 0, 20); 
   vhist.push_back(hcorrtower_ADC_Eoffline);
   TH2F* hcorrtower_E_Eoffline = new TH2F("hcorrtower_E_Eoffline", ";HF energy (after ped sub) [GeV];offline HF tower energy / 4 [GeV]", 100, 0, 20, 100, 0, 20);
@@ -82,6 +84,7 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
           hcorr_ADC_E->Fill((*ampl)[l], (*energy)[l]);
           hcorr_Eped_E->Fill((*energy_ped)[l], (*energy)[l]);
           hcorr_fCped_Eped->Fill((*charge_ped)[l], (*energy_ped)[l]);
+          hcorr_fC_E->Fill((*charge)[l], (*energy)[l]);
         }
       for(int j=0;j<ntower;j++) 
         { 
@@ -103,6 +106,7 @@ void adcToGeV(std::string inputname, std::string outputname, int nevt = -1)
   hcorr_ADC_E->Write();
   hcorr_Eped_E->Write();
   hcorr_fCped_Eped->Write();
+  hcorr_fC_E->Write();
   hcorrtower_ADC_Eoffline->Write();
   hcorrtower_E_Eoffline->Write();
   hcorrtower_ADCsum_Eoffline->Write();
