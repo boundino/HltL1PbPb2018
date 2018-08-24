@@ -13,7 +13,7 @@
 
 #include "mapTracking.h"
 
-void drawMemory(std::vector<std::string> vinput, std::vector<int> vishlt, std::string output)
+void drawTiming(std::vector<std::string> vinput, std::vector<int> vishlt, std::string output)
 {
   if(nmaptrkhlt != nmaptrkoffline) return;
   xjjroot::setgstyle(1);
@@ -22,9 +22,9 @@ void drawMemory(std::vector<std::string> vinput, std::vector<int> vishlt, std::s
   gStyle->SetPadTopMargin(0.02);
   gStyle->SetPadBottomMargin(0.08);
 
-  std::vector<std::pair<TH1F*,float>> vhrssmax;
+  std::vector<std::pair<TH1F*,float>> vhavgtime;
   TLegend* leg = new TLegend(0.67, 0.50-0.04*vinput.size(), 0.90, 0.50);
-  xjjroot::setleg(leg, 0.04);  
+  xjjroot::setleg(leg, 0.04);
   int j = 0;  
   for(auto &it : vinput) 
     {      
@@ -42,30 +42,29 @@ void drawMemory(std::vector<std::string> vinput, std::vector<int> vishlt, std::s
       rcd->GetEntry(0);
       for(int k=0;k<nmaptrkhlt;k++)
         {
-          hrss->SetBinContent(k+1, (*module[k])[3]);
+          hrss->SetBinContent(k+1, (*module[k])[1]);
           hrss->GetXaxis()->SetBinLabel(k+1, maptrk[k].c_str());
           hrss->GetXaxis()->SetLabelSize(0.03);
           hrss->GetYaxis()->CenterTitle();
           hrss->GetYaxis()->SetTitleOffset(1.0);
-          hrss->GetYaxis()->SetNdivisions(505);
         }
       if(j < xjjroot::ncolor) 
         { hrss->SetFillColor(xjjroot::colorlist_middle[j]); }
-      vhrssmax.push_back(std::pair<TH1F*,float>(hrss, hrss->GetMaximum()));
-      leg->AddEntry(vhrssmax[j].first, std::string(name.begin()+40, name.end()-16).c_str(), "f");
+      vhavgtime.push_back(std::pair<TH1F*,float>(hrss, hrss->GetMaximum()));
+      leg->AddEntry(vhavgtime[j].first, std::string(name.begin()+40, name.end()-16).c_str(), "f");
       j++;
     }
-  std::sort(vhrssmax.begin(), vhrssmax.end(), xjjc::sortbysecond_as<TH1F*,float>);
-  vhrssmax.at(vhrssmax.size()-1).first->SetTitle(";;max RSS (MB)");
+  std::sort(vhavgtime.begin(), vhavgtime.end(), xjjc::sortbysecond_as<TH1F*,float>);
+  vhavgtime.at(vhavgtime.size()-1).first->SetTitle(";;Average time/evt (sec)");
   TCanvas* c = new TCanvas("c", "", 1500, 1500);
-  for(auto it = vhrssmax.rbegin(); it != vhrssmax.rend(); ++it)
+  for(auto it = vhavgtime.rbegin(); it != vhavgtime.rend(); ++it)
     {
-      std::string opt = it==vhrssmax.rbegin()?"HBAR":"HBAR same";
+      std::string opt = it==vhavgtime.rbegin()?"HBAR":"HBAR same";
       it->first->Draw(opt.c_str());
     }
   leg->Draw();
   gPad->RedrawAxis();
-  c->SaveAs(std::string("plots/cmemory_"+output+".pdf").c_str());
+  c->SaveAs(std::string("plots/ctiming_"+output+".pdf").c_str());
 }
 
 int main(int argc, char* argv[])
@@ -77,7 +76,7 @@ int main(int argc, char* argv[])
       for(int i=1;i<argc-1;i+=2) { vinput.push_back(argv[i]); vishlt.push_back(atoi(argv[i+1])); }
       for(auto& it : vinput) { std::cout<<it<<std::endl; }
       // std::sort(vinput.begin(), vinput.end()); 
-      drawMemory(vinput, vishlt, argv[argc-1]);
+      drawTiming(vinput, vishlt, argv[argc-1]);
       return 0;
     }
   std::cout<<argc<<std::endl;

@@ -17,9 +17,9 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  const Color_t colorlist_light[]  = {kRed-9, kOrange-4, kGreen-8, kAzure-9, kMagenta-8, kCyan-10, kViolet-9, kYellow-10, kBlue-8, kPink+1};
-  const Color_t colorlist_middle[] = {kRed-3, kOrange-3, kGreen+2, kAzure-3, kMagenta-5, kCyan-6,  kViolet+7, kYellow+2,  kBlue-5, kPink+2};
-  const Color_t colorlist_dark[]   = {kRed+2, kOrange+5, kGreen+3, kAzure-6, kMagenta-1, kCyan+3,  kViolet+4, kYellow+3,  kBlue-1, kPink+3};
+  const Color_t colorlist_light[]  = {kRed-9, kOrange-4, kGreen-8, kAzure-9, kMagenta-8, kCyan-10, kPink+1, kYellow-10, kBlue-10, kGray};
+  const Color_t colorlist_middle[] = {kRed-3, kOrange-3, kGreen+2, kAzure-3, kMagenta-5, kCyan-6,  kPink+2, kYellow+2,  kBlue-5,  kGray+1};
+  const Color_t colorlist_dark[]   = {kRed+2, kOrange+5, kGreen+3, kAzure-6, kMagenta-1, kCyan+3,  kPink+3, kYellow+3,  kBlue-1,  kGray+2};
   const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
 
   void setgstyle(Int_t padtick=0);
