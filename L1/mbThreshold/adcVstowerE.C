@@ -1,17 +1,19 @@
 #include "adcVstowerE.h"
+#define MAXTRACKS 60000
+#define MAXVTX 100
 
 void adcVstowerE(TString inputname, TString outputname, int nevt = -1)
 {
   TFile* inf = new TFile(inputname.Data());
-  TTree* l1Adc = (TTree*)inf->Get("MBefficiency/adc");
+  TTree* l1Adc = (TTree*)inf->Get("HFAdcana/adc");
   TTree* hiroot = (TTree*)inf->Get("hiEvtAnalyzer/HiTree");
+  TTree* trktree = (TTree*)inf->Get("ppTrack/trackTree");
 
   //
-  int nampl; l1Adc->SetBranchAddress("nampl", &nampl);
-  int ampl[4000]; l1Adc->SetBranchAddress("ampl", ampl);
-  int ieta[4000]; l1Adc->SetBranchAddress("ieta", ieta);
-  int iphi[4000]; l1Adc->SetBranchAddress("iphi", iphi);
-  int depth[4000]; l1Adc->SetBranchAddress("depth", depth);
+  std::vector<int>* ampl = 0; l1Adc->SetBranchAddress("ampl", &ampl);
+  std::vector<int>* ieta = 0; l1Adc->SetBranchAddress("ieta", &ieta);
+  std::vector<int>* iphi = 0; l1Adc->SetBranchAddress("iphi", &iphi);
+  std::vector<int>* depth = 0; l1Adc->SetBranchAddress("depth", &depth);
 
   int ntower; hiroot->SetBranchAddress("ntower", &ntower);
   float towerEmax; hiroot->SetBranchAddress("towerEmax", &towerEmax);
@@ -19,65 +21,108 @@ void adcVstowerE(TString inputname, TString outputname, int nevt = -1)
   std::vector<int>* towerieta = 0; hiroot->SetBranchAddress("towerieta", &towerieta);
   std::vector<int>* toweriphi = 0; hiroot->SetBranchAddress("toweriphi", &toweriphi);
 
+  int nTrk; trktree->SetBranchAddress("nTrk", &nTrk);
+  bool highPurity[MAXTRACKS]; trktree->SetBranchAddress("highPurity", highPurity);
+  float trkEta[MAXTRACKS]; trktree->SetBranchAddress("trkEta", trkEta);
+  float trkPtError[MAXTRACKS]; trktree->SetBranchAddress("trkPtError", trkPtError);
+  float trkPt[MAXTRACKS]; trktree->SetBranchAddress("trkPt", trkPt);
+  float trkDz1[MAXTRACKS]; trktree->SetBranchAddress("trkDz1", trkDz1);
+  float trkDzError1[MAXTRACKS]; trktree->SetBranchAddress("trkDzError1", trkDzError1);
+  float trkDxy1[MAXTRACKS]; trktree->SetBranchAddress("trkDxy1", trkDxy1);
+  float trkDxyError1[MAXTRACKS]; trktree->SetBranchAddress("trkDxyError1", trkDxyError1);
+  float trkChi2[MAXTRACKS]; trktree->SetBranchAddress("trkChi2", trkChi2);
+  unsigned char trkNdof[MAXTRACKS]; trktree->SetBranchAddress("trkNdof", trkNdof);
+  unsigned char trkNHit[MAXTRACKS]; trktree->SetBranchAddress("trkNHit", trkNHit);
+  unsigned char trkNlayer[MAXTRACKS]; trktree->SetBranchAddress("trkNlayer", trkNlayer);
+  unsigned char trkAlgo[MAXTRACKS]; trktree->SetBranchAddress("trkAlgo", trkAlgo);
+  
   //
+  TH1F* hEff = new TH1F("hEff", ";HF threshold (ADC);Efficiency", 40, 0, 40); hEff->Sumw2();
+  TH1F* hEffsumls = new TH1F("hEffsumls", ";HF threshold (ADC);Efficiency", 40, 0, 40); hEffsumls->Sumw2();
+  TH1F* hEffden = new TH1F("hEffden", ";HF threshold (ADC);", 40, 0, 40); hEffden->Sumw2();
+  TH1F* hEffEvtsel = new TH1F("hEffEvtsel", ";HF threshold (ADC);Efficiency", 40, 0, 40); hEffEvtsel->Sumw2();
+  TH1F* hEffEvtselsumls = new TH1F("hEffEvtselsumls", ";HF threshold (ADC);Efficiency", 40, 0, 40); hEffEvtselsumls->Sumw2();
+  TH1F* hEffEvtselden = new TH1F("hEffEvtselden", ";HF threshold (ADC);", 40, 0, 40); hEffEvtselden->Sumw2();
+  TH2F* hcorrmaxAdc_maxAdcsum = new TH2F("hcorrmaxAdc_maxAdcsum", ";max{{long}, {short}};max{#Sigmalong, #Sigmashort}", 40, 0, 40, 40, 0, 40);
   TH2F* hcorrTowerADC_E = new TH2F("hcorrTowerADC_E", ";HF tower E;ADC", 100, 0, 10, 50, 0, 50);
   TH2F* hcorrTowerADC_Emax = new TH2F("hcorrTowerADC_Emax", ";leading HF tower E;ADC", 100, 0, 10, 50, 0, 50);
   TH1F* hEtlead[nFGthre];
-  TH1F* hEt[nFGthre];
-  TH1F* hEtlead_ADCtower[nFGthre];
+  TH1F* hEtleadsum[nFGthre];
   for(int k=0;k<nFGthre;k++) 
     { 
       hEtlead[k] = new TH1F(Form("hEtlead%d",k), ";HF leading tower E_{max} (GeV);", 200, 1, 101); 
-      hEt[k] = new TH1F(Form("hEt%d",k), ";HF tower E (GeV);", 200, 1, 101); 
-      hEtlead_ADCtower[k] = new TH1F(Form("hEtlead_ADCtower%d",k), ";HF leading tower E_{max} (GeV);", 200, 1, 101); 
+      hEtleadsum[k] = new TH1F(Form("hEtleadsum%d",k), ";HF tower E (GeV);", 200, 1, 101); 
     }
   TH1F* htowerE = new TH1F("htowerE", ";HF tower energy (GeV);", 200, 0, 200);
   TH1F* hAdc = new TH1F("hAdc", ";ADC;", 50, 0, 50);
   TH1F* hAdcmax = new TH1F("hAdcmax", ";max ADC;", 50, 0, 50);
   TH1F* hAdctower = new TH1F("hAdctower", ";ADC / tower;", 50, 0, 50);
-  TH1F* hAdcdepth[4]; for(int k=0;k<4;k++) { hAdcdepth[k] = new TH1F(Form("hAdcdepth%d",k+1), ";ADC;", 50, 0, 50); }
-  // TH1F* hAdcdepth_del[4]; for(int k=0;k<4;k++) { hAdcdepth_del[k] = new TH1F(Form("hAdcdepth_del%d",k+1), ";ADC;", 50, 0, 50); }
-  TH2F* hAdcmaxVsAdcmax_nodepth = new TH2F("hAdcmaxVsAdcmax_nodepth", ";max ADC;max ADC in depth=1&2", 50, 0, 50, 50, 0, 50);
-  TH1F* hdebug = new TH1F("hdebug", ";ieta;", 85, -42, 42);
 
   int nentries = nevt>0&&nevt<l1Adc->GetEntries()?nevt:l1Adc->GetEntries();
   for(int i=0;i<nentries;i++)
     {
-      if(i%10000==0) { std::cout<<std::setiosflags(std::ios::left)<<std::setw(12)<<i<<" / "<<nentries<<"\r"<<std::flush; }
+      if(i%10000==0) { xjjc::progressbar(i, nentries); }
       l1Adc->GetEntry(i);
       hiroot->GetEntry(i);
+      trktree->GetEntry(i);
 
+      int nampl = ampl->size();
       const int NBIN_IETA = 101, NBIN_IPHI = 80; 
       std::vector<int> ampltower(NBIN_IETA*100 + NBIN_IPHI, 0);
       std::vector<int> nampltower(NBIN_IETA*100 + NBIN_IPHI, 0);
-      int amplmax = 0, amplmax_nodepth = 0, amplsum = 0, namplcell = 0;
+      std::vector<int> nampllong(NBIN_IETA*100 + NBIN_IPHI, 0);
+      std::vector<int> namplshort(NBIN_IETA*100 + NBIN_IPHI, 0);
+      std::vector<int> ampllong(NBIN_IETA*100 + NBIN_IPHI, 0);
+      std::vector<int> amplshort(NBIN_IETA*100 + NBIN_IPHI, 0);
+      int amplmax = 0, namplcell = 0;
       for(int l=0;l<nampl;l++)
         {
-          if(TMath::Abs(ieta[l]) < 29) continue;
-          if(i%1000==0) { hAdc->Fill(ampl[l]); hAdcdepth[depth[l]-1]->Fill(ampl[l]); }
-          if(ampl[l] > amplmax && depth[l]>0 && depth[l]<3) { amplmax = ampl[l]; } ///
-          if(ampl[l] > amplmax_nodepth) { amplmax_nodepth = ampl[l]; } ///
-          amplsum += ampl[l];
-          int index = (ieta[l]+50) * 100 + iphi[l];
+          if(TMath::Abs((*ieta)[l]) < 29) { /*std::cout<<"warning: hAdcVsGeV saves units not HF: ieta = "<<(*ieta)[l]<<std::endl;*/ continue; }
+          if(i%1000==0) { hAdc->Fill((*ampl)[l]); }
+          if((*ampl)[l] > amplmax) { amplmax = (*ampl)[l]; } //
+          int index = ((*ieta)[l]+50) * 100 + (*iphi)[l];
           if(nampltower[index]==0) { namplcell++; }
-          ampltower[index] += ampl[l];
+          ampltower[index] += (*ampl)[l];
           nampltower[index] += 1;
-          // if(depth[l]==1 || depth[l]==2) { if(ampl[l] > ampltower[index]) { ampltower[index] = ampl[l]; nampltower[index] = 1; } }
+          if((*depth)[l]==1 || (*depth)[l]==3) { ampllong[index] += (*ampl)[l]; nampllong[index] += 1; }
+          if((*depth)[l]==2 || (*depth)[l]==4) { amplshort[index] += (*ampl)[l]; namplshort[index] += 1; }
         }
       hAdcmax->Fill(amplmax);
-      hAdcmaxVsAdcmax_nodepth->Fill(amplmax_nodepth,amplmax);
-      int ampltowermin = -1;
+      int amplsummax_long = 0, amplsummax_short = 0;
+      for(int index=0; index<NBIN_IETA*100 + NBIN_IPHI; index++)
+        {
+          if(nampllong[index]==1 || namplshort[index]==1) { std::cout<<"warning: only one depth for short/long"<<std::endl; continue; }
+          if(ampllong[index] > amplsummax_long) { amplsummax_long = ampllong[index]; }
+          if(amplshort[index] > amplsummax_short) { amplsummax_short = amplshort[index]; }
+        }
+      int amplsummax = amplsummax_long>amplsummax_short?amplsummax_long:amplsummax_short;
+      hcorrmaxAdc_maxAdcsum->Fill(amplmax, amplsummax);
+      bool singletrackfilter = false;
+      for(int t=0;t<nTrk;t++)
+        {
+          if(highPurity[t] && TMath::Abs(trkPtError[t]/trkPt[t]) < 0.1 && 
+             TMath::Abs(trkDz1[t]/trkDzError1[t]) < 3 && TMath::Abs(trkDxy1[t]/trkDxyError1[t]) < 3 && 
+             TMath::Abs(trkEta[t]) < 2.4 && trkPt[t] > 0.4) { singletrackfilter = true; break; }
+        }
+      for(int j=0;j<40;j++)
+        {
+          hEffden->Fill(j, 1);
+          if(amplmax > j) { hEff->Fill(j, 1); }
+          if(amplsummax > j) { hEffsumls->Fill(j, 1); }
+          if(!singletrackfilter) { continue; }
+          hEffEvtselden->Fill(j, 1);
+          if(amplmax > j) { hEffEvtsel->Fill(j, 1); }
+          if(amplsummax > j) { hEffEvtselsumls->Fill(j, 1); }          
+        }
       for(auto& iampltower : ampltower) 
         { 
           hAdctower->Fill(iampltower, 1./namplcell); 
-          if(iampltower<ampltowermin || ampltowermin<0) { ampltowermin = iampltower; } 
         }
       // std::sort(ampltower.begin(), ampltower.end(), xjjc::sortbydes<int>);
       for(int k=0;k<nFGthre;k++) 
         { 
-          // if(amplmax >= FGthre[k]) { hEtlead[k]->Fill(towerEmax); }  ///////
-          if(amplmax_nodepth > FGthre[k]) { hEtlead[k]->Fill(towerEmax); }  ///////
-          if(ampltowermin >= FGthre[k]) { hEtlead_ADCtower[k]->Fill(towerEmax); }
+          if(amplmax > FGthre[k]) { hEtlead[k]->Fill(towerEmax); }
+          if(amplsummax > FGthre[k]) { hEtleadsum[k]->Fill(towerEmax); }
         }
       float towermax = 0;
       int thisamplmax = 0;
@@ -89,28 +134,33 @@ void adcVstowerE(TString inputname, TString outputname, int nevt = -1)
           int nthisampl = nampltower[index];
           hcorrTowerADC_E->Fill((*towerE)[j], thisampl);
           if((*towerE)[j] > towermax) { towermax = (*towerE)[j]; thisamplmax = thisampl; }
-          for(int k=0;k<nFGthre;k++) { if(amplmax > FGthre[k]) { hEt[k]->Fill((*towerE)[j]); } }
-          if((*towerE)[j] > 6 && thisampl < 16) { hdebug->Fill((*towerieta)[j]); /*std::cout<<"test--> ieta: "<<(*towerieta)[j]<<" iphi: "<<(*toweriphi)[j]<<" ncell: "<<nampltower[index]<<std::endl;*/ }
         }
       hcorrTowerADC_Emax->Fill(towermax, thisamplmax);
     }
-  std::cout<<std::setiosflags(std::ios::left)<<"  Processed "<<"\033[1;31m"<<nentries<<"\033[0m out of\033[1;31m "<<nentries<<"\033[0m event(s)."<<std::endl;
+  xjjc::progressbar_summary(nentries);
+
+  hEff->Divide(hEffden);
+  hEffsumls->Divide(hEffden);
+  hEffEvtsel->Divide(hEffEvtselden);
+  hEffEvtselsumls->Divide(hEffEvtselden);
+
   TFile* output = new TFile(Form("%s.root", outputname.Data()), "recreate");
+  hEff->Write();
+  hEffsumls->Write();
+  hEffEvtsel->Write();
+  hEffEvtselsumls->Write();
+  hcorrmaxAdc_maxAdcsum->Write();
   hAdc->Write();
   hAdcmax->Write();
-  hAdcmaxVsAdcmax_nodepth->Write();
   hAdctower->Write();
-  for(int k=0;k<4;k++) { hAdcdepth[k]->Write(); }
   htowerE->Write();
   for(int k=0;k<nFGthre;k++) 
     { 
       hEtlead[k]->Write(); 
-      hEt[k]->Write(); 
-      hEtlead_ADCtower[k]->Write();
+      hEtleadsum[k]->Write(); 
     }
   hcorrTowerADC_E->Write();
   hcorrTowerADC_Emax->Write();
-  hdebug->Write();
   output->Close();
 
 }
