@@ -19,6 +19,7 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
   std::map<std::string, float> avgtime;
   std::map<std::string, float> mintime;
   std::map<std::string, float> maxtime;
+  std::map<std::string, float> imax;
 
   std::map<int, float> evttime;
   std::map<int, int> nmods;
@@ -41,12 +42,13 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
           avgtime.insert(std::pair<std::string, float>(name, del_time));
           mintime.insert(std::pair<std::string, float>(name, del_time));
           maxtime.insert(std::pair<std::string, float>(name, del_time));
+          imax.insert(std::pair<std::string, float>(name, 0));
         }
       else
         {
           ntime[name] += 1;
           avgtime[name] += del_time;
-          if(del_time > maxtime[name]) maxtime[name] = del_time;
+          if(del_time > maxtime[name]) { maxtime[name] = del_time; imax[name] = ntime[name]-1; }
           if(del_time < mintime[name]) mintime[name] = del_time;
         }
       if(evttime.find(event)==evttime.end())
@@ -65,9 +67,9 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
   std::sort(ntime_sort.begin(), ntime_sort.end(), xjjc::sortbysecond_des<std::string, float>); 
   int i = 0;
   std::cout<<std::endl;
-  std::cout<<std::string(195, '-')<<std::endl;
+  std::cout<<std::string(200, '-')<<std::endl;
   std::cout<<" -- #event = \033[38;5;210;1m"<<nevt<<"\033[0m"<<std::endl;
-  std::cout<<std::string(195, '-')<<std::endl;
+  std::cout<<std::string(200, '-')<<std::endl;
   std::cout<<std::left
            <<std::setw(5)<<"#"
            <<std::setw(110)<<"Module"
@@ -75,8 +77,9 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
            <<std::setw(20)<<"avg TIME (sec)"
            <<std::setw(20)<<"min TIME (sec)"
            <<std::setw(20)<<"max TIME (sec)"
+           <<std::setw(15)<<"max TIME evt"
            <<"\033[0m"<<std::endl;
-  std::cout<<std::string(195, '-')<<std::endl;
+  std::cout<<std::string(200, '-')<<std::endl;
   std::string outputname = xjjc::str_replaceall(xjjc::str_replaceall(inputname, ".", "-"), "/", "-");
   TFile* outf = new TFile(std::string("rootfiles/"+outputname+".root").c_str(), "recreate");
   outf->cd();
@@ -101,6 +104,7 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
                <<std::setw(20)<<avgtime[name]
                <<std::setw(20)<<mintime[name]
                <<std::setw(20)<<maxtime[name]
+               <<std::setw(15)<<imax[name]
                <<"\033[0m"<<std::endl;
     }
   rcd->Fill();
