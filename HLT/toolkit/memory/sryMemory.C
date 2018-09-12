@@ -69,7 +69,7 @@ void sryMemory(std::string inputname, const int nevt, const int outputline=-1, c
            <<std::setw(20)<<"avg RSS (MB)"
            <<std::setw(20)<<"min RSS (MB)"
            <<std::setw(20)<<"max RSS (MB)"
-           <<std::setw(20)<<"avg VSIZE (MB)"
+           <<std::setw(10)<<"avg VSIZE (MB)"
            <<"\033[0m"<<std::endl;
   std::cout<<std::string(195, '-')<<std::endl;
   std::string outputname = xjjc::str_replaceall(xjjc::str_replaceall(inputname, ".", "-"), "/", "-");
@@ -97,7 +97,7 @@ void sryMemory(std::string inputname, const int nevt, const int outputline=-1, c
                <<std::setw(20)<<avgrss[name]
                <<std::setw(20)<<minrss[name]
                <<std::setw(20)<<maxrss[name]
-               <<std::setw(20)<<avgvsize[name]
+               <<std::setw(10)<<avgvsize[name]
                <<"\033[0m"<<std::endl;
     }
   rcd->Fill();
