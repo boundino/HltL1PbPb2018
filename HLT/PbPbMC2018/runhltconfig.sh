@@ -1,9 +1,9 @@
 #!/bin/bash
 
-MENU="/users/wangj/PbPb2018/HLTPbPb2018Import/V20"
-CONFIG=expHLT_102X_ImportV20L1_cfg
-# MENU="/users/davidlw/HLT_PbPb2018_FullTrackv2/V50"
-# CONFIG=expHLT_102X_TrkV50_cfg
+# MENU="/users/wangj/PbPb2018/HLTPbPb2018Import/V20"
+# CONFIG=expHLT_102X_ImportV20_cfg
+MENU="/users/davidlw/HLT_PbPb2018_FullTrackv2/V50"
+CONFIG=expHLT_102X_TrkV50_cfg
 FILE=file:/afs/cern.ch/work/w/wangj/public/PbPb2018MCDs/raw/step1_DIGI_L1_DIGI2RAW_HLT_PU_184.root # Ds pthat100
 
 # emulL1="--l1-emulator FullMC --l1Xml=/afs/cern.ch/user/i/icali/public/L1Menu_CollisionsHeavyIons2018_v1.xml"
@@ -33,24 +33,17 @@ process.hltBitAnalysis = cms.EndPath(process.hltbitanalysis)
 process.TFileService = cms.Service("TFileService",
                                    fileName=cms.string("openHLT.root"))' >> ${CONFIG}.py
 
-# echo '
-# process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
-#     ignoreTotal = cms.untracked.int32(2),
-#     # showMallocInfo = cms.untracked.bool(False),
-#     # oncePerEventMode = cms.untracked.bool(True),
-#     # jobReportOutputOnly = cms.untracked.bool(False),
-#     # M_MMAP_MAX = cms.untracked.int32(-1),
-#     # M_TRIM_THRESHOLD = cms.untracked.int32(-1),
-#     # M_TOP_PAD = cms.untracked.int32(-1),
-#     # M_MMAP_THRESHOLD = cms.untracked.int32(-1),
-#     # dump = cms.untracked.bool(False),
-#     monitorPssAndPrivate = cms.untracked.bool(True),
-#     moduleMemorySummary = cms.untracked.bool(True)
-# )
-# process.Timing = cms.Service("Timing",
-#   summaryOnly = cms.untracked.bool(False),
-#   useJobReport = cms.untracked.bool(True)
-# )' >> ${CONFIG}.py
+echo '
+process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
+    ignoreTotal = cms.untracked.int32(2),
+    # oncePerEventMode = cms.untracked.bool(True),
+    monitorPssAndPrivate = cms.untracked.bool(True),
+    moduleMemorySummary = cms.untracked.bool(True)
+)
+process.Timing = cms.Service("Timing",
+  summaryOnly = cms.untracked.bool(False),
+  useJobReport = cms.untracked.bool(True)
+)' >> ${CONFIG}.py
 
 set -x
 edmConfigDump ${CONFIG}.py >& ${CONFIG}_DUMP.py
