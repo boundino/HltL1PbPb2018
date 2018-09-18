@@ -36,7 +36,7 @@ process.TFileService = cms.Service("TFileService",
 echo '
 process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
     ignoreTotal = cms.untracked.int32(2),
-    # oncePerEventMode = cms.untracked.bool(True),
+    oncePerEventMode = cms.untracked.bool(True),
     monitorPssAndPrivate = cms.untracked.bool(True),
     moduleMemorySummary = cms.untracked.bool(True)
 )
