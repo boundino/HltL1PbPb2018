@@ -37,8 +37,8 @@ git checkout utm_0_7_x_dev
 ## setenv XERCES_C_BASE <XERCES_C_BASE directory printed by the above command>
 ## scram tool info boost
 ## setenv BOOST_BASE <BOOST_BASE directory printed by the above command>
-export $(scram tool info xerces-c | grep color=auto XERCES_C_BASE)
-export $(scram tool info boost | grep color=auto BOOST_BASE)
+export $(scram tool info xerces-c | grep --color=auto XERCES_C_BASE)
+export $(scram tool info boost | grep --color=auto BOOST_BASE)
 make all
 make install
 
