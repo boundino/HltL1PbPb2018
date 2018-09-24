@@ -45,9 +45,8 @@ make install
 cd $CMSSW_BASE/src
 ## Almost there. Edit ../config/toolbox/${SCRAM_ARCH}/tools/selected/utm.xml and
 ## change the default for the UTM_BASE variable to the directory pointed to by the output of "echo $CMSSW_BASE/utm", then
-## sed -i 's/ptMin = cms\.double( 0\.. )/ptMin = cms.double( 5.0 )/g' ${CONFIG}.py
 echo $CMSSW_BASE/utm > utmpath.temp
-sed -i 's/"UTM_BASE" default=".*"/"UTM_BASE" default="'$(sed 's/\//\\\//g' utmpath.temp)'"/g' test.xml
+sed -i 's/"UTM_BASE" default=".*"/"UTM_BASE" default="'$(sed 's/\//\\\//g' utmpath.temp)'"/g' ../config/toolbox/${SCRAM_ARCH}/tools/selected/utm.xml
 rm utmpath.temp
 
 scram setup utm
