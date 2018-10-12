@@ -1,7 +1,9 @@
 #!/bin/bash
 
-MENU="/users/wangj/PbPb2018/HLTPbPb2018Import/V33"
-CONFIG=expHLT_102X_ImportV33L1_cfg
+# MENU="/users/wangj/PbPb2018/HLTPbPb2018Import/V33"
+# CONFIG=expHLT_102X_ImportV33L1_cfg
+MENU="/users/wangj/PbPb2018/HLTPbPb2018Empty/V5"
+CONFIG=expHLT_102X_EmptyV5_cfg
 
 FILE=file:/afs/cern.ch/work/w/wangj/public/PbPb2018MCMB/RAW/FE243EFA-6DAB-E811-BFDE-9CB654AD72EC.root # MB MC 2018
 
@@ -21,7 +23,7 @@ hltGetConfiguration $MENU \
     --setup /dev/CMSSW_10_1_0/GRun \
     --process MYHLT --full --offline --mc --unprescale --max-events 10 $emulL1 > ${CONFIG}.py
 
-sed -i 's/L1_ZeroBias/L1GlobalDecision/g' ${CONFIG}.py
+# sed -i 's/L1_ZeroBias/L1GlobalDecision/g' ${CONFIG}.py
 # sed -i 's/ptMin = cms\.double( 0\.. )/ptMin = cms.double( 5.0 )/g' ${CONFIG}.py
 sed -i 's/numberOfThreads = cms.untracked\.uint32( 4 )/numberOfThreads = cms.untracked.uint32( 1 )/g' ${CONFIG}.py
 sed -i 's/process\.DQMStore\.enableMultiThread = True/process.DQMStore.enableMultiThread = False/g' ${CONFIG}.py
@@ -47,8 +49,8 @@ process.caloStage2Params.egEtaCut = cms.int32(24)
 process.caloStage2Params.hiMode = cms.uint32(1)
 process.caloStage2Params.jetPUSType = cms.string('"'"'PhiRing2'"'"')
 # centrality
-process.caloStage2Params.etSumCentralityLower = cms.vdouble(0.0, 2.5,  13.5,  133.0, 411.5,  1101.5, 2494.5, 65535.0)
-process.caloStage2Params.etSumCentralityUpper = cms.vdouble(8.0, 25.5, 208.0, 567.5, 1349.5, 2790.5, 5114.0, 65535.0)
+process.caloStage2Params.etSumCentralityLower = cms.vdouble(65535.0, 2621.2/2., 1166.8/2., 439.0/2., 142.0/2., 14.3/2., 2.7/2., 0.0/2.)
+process.caloStage2Params.etSumCentralityUpper = cms.vdouble(65535.0, 5328.1/2., 2928.7/2., 1426.7/2., 604.2/2., 221.9/2., 27.2/2., 8.3/2.)
 
 process.GlobalTag.toGet = cms.VPSet(cms.PSet(record = cms.string('"'"'HcalElectronicsMapRcd'"'"'), tag = cms.string('"'"'HcalElectronicsMap_2018_v3.0_mc'"'"'), connect = cms.string('"'"'frontier://FrontierProd/CMS_CONDITIONS'"'"'), globaltag=cms.string('"'"'103X_upgrade2018_realistic_v4'"'"')))
 ' >> ${CONFIG}.py
@@ -73,10 +75,10 @@ echo '
 #     monitorPssAndPrivate = cms.untracked.bool(True),
 #     moduleMemorySummary = cms.untracked.bool(True)
 # )
-process.Timing = cms.Service("Timing",
-summaryOnly = cms.untracked.bool(False),
-useJobReport = cms.untracked.bool(True)
-)' >> ${CONFIG}.py
+# process.Timing = cms.Service("Timing",
+# summaryOnly = cms.untracked.bool(False),
+# useJobReport = cms.untracked.bool(True)
+# )' >> ${CONFIG}.py
 
 set -x
 edmConfigDump ${CONFIG}.py >& ${CONFIG}_DUMP.py
