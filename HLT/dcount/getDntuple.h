@@ -17,6 +17,7 @@ namespace objstructure
     float   Dchi2cl[MAX_XB];
     float   Dalpha[MAX_XB];
     float   Dgen[MAX_XB];
+    float   Dgenpt[MAX_XB];
 
     float   Dtrk1Pt[MAX_XB];
     float   Dtrk2Pt[MAX_XB];
@@ -45,6 +46,7 @@ namespace objstructure
       root->SetBranchAddress("Dchi2cl", Dchi2cl);
       root->SetBranchAddress("Dalpha", Dalpha);
       root->SetBranchAddress("Dgen", Dgen);
+      root->SetBranchAddress("Dgenpt", Dgenpt);
 
       root->SetBranchAddress("Dtrk1Pt", Dtrk1Pt);
       root->SetBranchAddress("Dtrk1Eta", Dtrk1Eta);
@@ -61,11 +63,11 @@ namespace objstructure
     bool iscandsel(int j)
     {
       bool val = PVz < 15 && Dgen[j]==23333 && 
-        TMath::Abs(Dy[j]) < 1 && DsvpvDistance[j]/DsvpvDisErr[j] > 2.5 && Dchi2cl[j] > 0.05 && Dalpha[j] < 0.12 &&
-        Dtrk1Pt[j] > 6 && TMath::Abs(Dtrk1Eta[j]) < 1.5 && Dtrk1PtErr[j]/Dtrk1Pt[j] < 0.3 && Dtrk1PixelHit[j]+Dtrk1StripHit[j] >= 11 &&
-        Dtrk2Pt[j] > 6 && TMath::Abs(Dtrk2Eta[j]) < 1.5 && Dtrk2PtErr[j]/Dtrk2Pt[j] < 0.3 && Dtrk2PixelHit[j]+Dtrk2StripHit[j] >= 11 ;
+        TMath::Abs(Dy[j]) < 1 && DsvpvDistance[j]/DsvpvDisErr[j] > 3.5 && Dchi2cl[j] > 0.05 && Dalpha[j] < 0.12 &&
+        Dtrk1Pt[j] > 2 && TMath::Abs(Dtrk1Eta[j]) < 1.5 && Dtrk1PtErr[j]/Dtrk1Pt[j] < 0.3 && Dtrk1PixelHit[j]+Dtrk1StripHit[j] >= 11 &&
+        Dtrk2Pt[j] > 2 && TMath::Abs(Dtrk2Eta[j]) < 1.5 && Dtrk2PtErr[j]/Dtrk2Pt[j] < 0.3 && Dtrk2PixelHit[j]+Dtrk2StripHit[j] >= 11 ; 
       return val;
     }
-  };
 
+  };
 }
