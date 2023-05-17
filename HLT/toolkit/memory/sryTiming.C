@@ -24,6 +24,12 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
   std::map<int, float> evttime;
   std::map<int, int> nmods;
 
+  std::map<int, float> evttime_tracking;
+  std::map<int, float> evttime_heavyflavor;
+
+  std::vector<std::string> mod_tracking;
+  std::vector<std::string> mod_heavyflavor;
+
   std::ifstream getdata(inputname.c_str());
   for(int i=0;i<nline || nline<0;i++)
     {
@@ -51,17 +57,31 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
           if(del_time > maxtime[name]) { maxtime[name] = del_time; imax[name] = ntime[name]-1; }
           if(del_time < mintime[name]) mintime[name] = del_time;
         }
-      if(evttime.find(event)==evttime.end())
+      float iftracking = 0;
+      float ifheavyflavor = 0;
+      if(xjjc::str_contains(mod, "HLT") || xjjc::str_contains(mod, "hlt"))
         {
-          nmods.insert(std::pair<int, int>(event, 1));
-          evttime.insert(std::pair<int, float>(event, del_time));
+          if(xjjc::str_contains(mod, "Dpt")) { ifheavyflavor = del_time; if(std::find(mod_heavyflavor.begin(), mod_heavyflavor.end(), mod)==mod_heavyflavor.end()) { mod_heavyflavor.push_back(mod); } }
+          else if(xjjc::str_contains(mod, "HighPt") || xjjc::str_contains(mod, "ZeroBias")) { ; }
+          else { iftracking = del_time; if(std::find(mod_tracking.begin(), mod_tracking.end(), mod)==mod_tracking.end()) { mod_tracking.push_back(mod); } }
         }
-      else
-        {
-          nmods[event] += 1;
-          evttime[event] += del_time;
-        }
+      if((xjjc::str_contains(mod, "HLT") || xjjc::str_contains(mod, "hlt")) && !xjjc::str_contains(mod, "Dpt") && !xjjc::str_contains(mod, "HighPt") && !xjjc::str_contains(mod, "ZeroBias"))  
+        if(evttime.find(event)==evttime.end())
+          {
+            nmods.insert(std::pair<int, int>(event, 1));
+            evttime.insert(std::pair<int, float>(event, del_time));
+            evttime_tracking.insert(std::pair<int, float>(event, iftracking));
+            evttime_heavyflavor.insert(std::pair<int, float>(event, ifheavyflavor));
+          }
+        else
+          {
+            nmods[event] += 1;
+            evttime[event] += del_time;
+            evttime_tracking[event] += iftracking;
+            evttime_heavyflavor[event] += ifheavyflavor;
+          }
     }
+
   std::vector<spair> ntime_sort;
   for(auto& it : avgtime) { ntime_sort.push_back(it); } // sort by
   std::sort(ntime_sort.begin(), ntime_sort.end(), xjjc::sortbysecond_des<std::string, float>); 
@@ -109,7 +129,29 @@ void sryTiming(std::string inputname, const int nevt, const int outputline=-1, c
     }
   rcd->Fill();
   rcd->Write();
+
+  outf->cd();
+  TTree* evttree = new TTree("evt", "");
+  int fevtno; evttree->Branch("evtno", &fevtno);
+  float fevttime; evttree->Branch("evttime", &fevttime);
+  float fevttime_tracking; evttree->Branch("evttime_tracking", &fevttime_tracking);
+  float fevttime_heavyflavor; evttree->Branch("evttime_heavyflavor", &fevttime_heavyflavor);
+  if(evttime.size() == evttime_tracking.size() && evttime.size() == evttime_heavyflavor.size())
+    {
+      for(auto& it : evttime) 
+        { 
+          int ievt = it.first;
+          fevtno = ievt;
+          fevttime = evttime[ievt];
+          fevttime_tracking = evttime_tracking[ievt];
+          fevttime_heavyflavor = evttime_heavyflavor[ievt];
+          evttree->Fill();    
+        }
+      evttree->Write();
+    }
+  else { std::cout << evttime.size() << "  " << evttime_tracking.size() << evttime_heavyflavor.size() << std::endl; }
   outf->Close();
+
 }
 
 int main(int argc, char* argv[])

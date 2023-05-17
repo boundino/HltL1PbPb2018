@@ -23,7 +23,7 @@ void drawTiming(std::vector<std::string> vinput, std::vector<int> vishlt, std::s
   gStyle->SetPadBottomMargin(0.08);
 
   std::vector<std::pair<TH1F*,float>> vhavgtime;
-  TLegend* leg = new TLegend(0.67, 0.50-0.04*vinput.size(), 0.90, 0.50);
+  TLegend* leg = new TLegend(0.60, 0.50-0.04*vinput.size(), 0.90, 0.50);
   xjjroot::setleg(leg, 0.04);
   int j = 0;  
   for(auto &it : vinput) 
@@ -51,7 +51,7 @@ void drawTiming(std::vector<std::string> vinput, std::vector<int> vishlt, std::s
       if(j < xjjroot::ncolor) 
         { hrss->SetFillColor(xjjroot::colorlist_middle[j]); }
       vhavgtime.push_back(std::pair<TH1F*,float>(hrss, hrss->GetMaximum()));
-      leg->AddEntry(vhavgtime[j].first, std::string(name.begin()+40, name.end()-16).c_str(), "f");
+      leg->AddEntry(vhavgtime[j].first, std::string(name.begin()+36, name.end()-7).c_str(), "f");
       j++;
     }
   std::sort(vhavgtime.begin(), vhavgtime.end(), xjjc::sortbysecond_as<TH1F*,float>);
